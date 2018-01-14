@@ -111,7 +111,7 @@ func newChainControlFromConfig(cfg *config, chanDB *channeldb.DB,
 			TimeLockDelta: cfg.Bitcoin.TimeLockDelta,
 		}
 		cc.feeEstimator = lnwallet.StaticFeeEstimator{
-			FeeRate: 50,
+			FeeRate: 200,
 		}
 	case litecoinChain:
 		cc.routingPolicy = htlcswitch.ForwardingPolicy{
@@ -380,7 +380,7 @@ func newChainControlFromConfig(cfg *config, chanDB *channeldb.DB,
 			// if we're using btcd as a backend, then we can use
 			// live fee estimates, rather than a statically coded
 			// value.
-			fallBackFeeRate := btcutil.Amount(25)
+			fallBackFeeRate := btcutil.Amount(140)
 			cc.feeEstimator, err = lnwallet.NewBtcdFeeEstimator(
 				*rpcConfig, fallBackFeeRate,
 			)
