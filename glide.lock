@@ -1,5 +1,5 @@
-hash: f72fdbb4d93ddd98991e830f978bfe9e08623e2a9976857b0f7668641486369c
-updated: 2018-01-29T15:55:37.905498329-07:00
+hash: dbc70373bbc0cc973616ea910d5100a86488be92cafbc33c9d5862fdf76a3690
+updated: 2018-01-22T22:57:01.652542051-07:00
 imports:
 - name: github.com/aead/chacha20
   version: d31a916ded42d1640b9d89a26f8abd53cc96790c
@@ -89,6 +89,11 @@ imports:
   version: 946bd9fbed05568b0f3cd188353d8aa28f38b688
   subpackages:
   - internal/socket
+<<<<<<< HEAD
+=======
+- name: github.com/lightninglabs/gozmq
+  version: 0d266ba6d55ea65c18c7a02d8992c89355149e80
+>>>>>>> build: update glide for new gozmq, btcwallet, and neutrino
 - name: github.com/roasbeef/btcd
   version: 9978b939c33973be19b932fa7b936079bb7ba38d
   subpackages:
