@@ -24,6 +24,7 @@ type bitcoinNetParams struct {
 type litecoinNetParams struct {
 	*litecoinCfg.Params
 	rpcPort string
+  DefaultPort string
 }
 
 // bitcoinTestNetParams contains parameters specific to the 3rd version of the
@@ -50,7 +51,8 @@ var bitcoinSimNetParams = bitcoinNetParams{
 // test network.
 var liteTestNetParams = litecoinNetParams{
 	Params:  &litecoinCfg.TestNet4Params,
-	rpcPort: "19334",
+	rpcPort: "19335",
+  DefaultPort: "18333",
 }
 
 // regTestNetParams contains parameters specific to a local regtest network.
@@ -66,7 +68,7 @@ var regTestNetParams = bitcoinNetParams{
 func applyLitecoinParams(params *bitcoinNetParams) {
 	params.Name = liteTestNetParams.Name
 	params.Net = wire.BitcoinNet(liteTestNetParams.Net)
-	params.DefaultPort = liteTestNetParams.DefaultPort
+	params.DefaultPort = "18333"
 	params.CoinbaseMaturity = liteTestNetParams.CoinbaseMaturity
 
 	copy(params.GenesisHash[:], liteTestNetParams.GenesisHash[:])
@@ -96,5 +98,5 @@ func applyLitecoinParams(params *bitcoinNetParams) {
 	}
 	params.Checkpoints = checkPoints
 
-	params.rpcPort = liteTestNetParams.rpcPort
+  params.rpcPort = "18335"
 }

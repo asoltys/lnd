@@ -82,6 +82,7 @@ var (
 	defaultLtcdRPCCertFile = filepath.Join(ltcdHomeDir, "rpc.cert")
 
 	bitcoindHomeDir = btcutil.AppDataDir("bitcoin", false)
+	litecoindHomeDir = btcutil.AppDataDir("litecoin", false)
 )
 
 type chainConfig struct {
@@ -120,6 +121,13 @@ type btcdConfig struct {
 }
 
 type bitcoindConfig struct {
+	RPCHost string `long:"rpchost" description:"The daemon's rpc listening address. If a port is omitted, then the default port for the selected chain parameters will be used."`
+	RPCUser string `long:"rpcuser" description:"Username for RPC connections"`
+	RPCPass string `long:"rpcpass" default-mask:"-" description:"Password for RPC connections"`
+	ZMQPath string `long:"zmqpath" description:"The path to the ZMQ socket providing at least raw blocks. Raw transactions can be handled as well."`
+}
+
+type litecoindConfig struct {
 	RPCHost string `long:"rpchost" description:"The daemon's rpc listening address. If a port is omitted, then the default port for the selected chain parameters will be used."`
 	RPCUser string `long:"rpcuser" description:"Username for RPC connections"`
 	RPCPass string `long:"rpcpass" default-mask:"-" description:"Password for RPC connections"`
@@ -172,6 +180,7 @@ type config struct {
 
 	Litecoin *chainConfig `group:"Litecoin" namespace:"litecoin"`
 	LtcdMode *btcdConfig  `group:"ltcd" namespace:"ltcd"`
+	LitecoindMode *bitcoindConfig `group:"litecoind" namespace:"litecoind"`
 
 	Autopilot *autoPilotConfig `group:"autopilot" namespace:"autopilot"`
 
@@ -222,11 +231,14 @@ func loadConfig() (*config, error) {
 			BaseFee:       defaultLitecoinBaseFeeMSat,
 			FeeRate:       defaultLitecoinFeeRate,
 			TimeLockDelta: defaultLitecoinTimeLockDelta,
-			Node:          "btcd",
+			Node:          "litecoind",
 		},
 		LtcdMode: &btcdConfig{
 			RPCHost: defaultRPCHost,
 			RPCCert: defaultLtcdRPCCertFile,
+		},
+		LitecoindMode: &bitcoindConfig{
+			RPCHost: defaultRPCHost,
 		},
 		MaxPendingChannels: defaultMaxPendingChannels,
 		NoEncryptWallet:    defaultNoEncryptWallet,
@@ -311,8 +323,8 @@ func loadConfig() (*config, error) {
 				minTimeLockDelta)
 		}
 
-		if cfg.Litecoin.Node != "btcd" {
-			str := "%s: only ltcd (`btcd`) mode supported for litecoin at this time"
+		if cfg.Litecoin.Node != "bitcoind" {
+			str := "%s: only bitcoind (`litecoind`) mode supported for litecoin at this time"
 			return nil, fmt.Errorf(str, funcName)
 		}
 
@@ -324,11 +336,11 @@ func loadConfig() (*config, error) {
 		applyLitecoinParams(&paramCopy)
 		activeNetParams = paramCopy
 
-		err := parseRPCParams(cfg.Litecoin, cfg.LtcdMode, litecoinChain,
+		err := parseRPCParams(cfg.Litecoin, cfg.LitecoindMode, litecoinChain,
 			funcName)
 		if err != nil {
 			err := fmt.Errorf("unable to load RPC credentials for "+
-				"ltcd: %v", err)
+				"litecoind: %v", err)
 			return nil, err
 		}
 
@@ -698,7 +710,9 @@ func parseRPCParams(cConfig *chainConfig, nodeConfig interface{}, net chainCode,
 			homeDir = ltcdHomeDir
 			confFile = "ltcd"
 		case "bitcoind":
-			return fmt.Errorf("bitcoind mode doesn't work with Litecoin yet")
+			daemonName = "litecoind"
+			homeDir = litecoindHomeDir
+			confFile = "litecoin"
 		}
 	}
 

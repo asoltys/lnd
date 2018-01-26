@@ -209,9 +209,16 @@ func newChainControlFromConfig(cfg *config, chanDB *channeldb.DB,
 		// server already has a port specified, then we use that
 		// directly. Otherwise, we assume the default port according to
 		// the selected chain parameters.
+		var bitcoindMode *bitcoindConfig
+		switch {
+		case cfg.Bitcoin.Active:
+			bitcoindMode = cfg.BitcoindMode
+		case cfg.Litecoin.Active:
+			bitcoindMode = cfg.LitecoindMode
+		}
 		var bitcoindHost string
-		if strings.Contains(cfg.BitcoindMode.RPCHost, ":") {
-			bitcoindHost = cfg.BitcoindMode.RPCHost
+		if strings.Contains(bitcoindMode.RPCHost, ":") {
+			bitcoindHost = bitcoindMode.RPCHost
 		} else {
 			// The RPC ports specified in chainparams.go assume
 			// btcd, which picks a different port so that btcwallet
@@ -223,13 +230,13 @@ func newChainControlFromConfig(cfg *config, chanDB *channeldb.DB,
 			}
 			rpcPort -= 2
 			bitcoindHost = fmt.Sprintf("%v:%d",
-				cfg.BitcoindMode.RPCHost, rpcPort)
+				bitcoindMode.RPCHost, rpcPort)
 			if cfg.Bitcoin.RegTest {
 				conn, err := net.Dial("tcp", bitcoindHost)
 				if err != nil || conn == nil {
 					rpcPort = 18443
 					bitcoindHost = fmt.Sprintf("%v:%d",
-						cfg.BitcoindMode.RPCHost,
+						bitcoindMode.RPCHost,
 						rpcPort)
 				} else {
 					conn.Close()
@@ -237,8 +244,8 @@ func newChainControlFromConfig(cfg *config, chanDB *channeldb.DB,
 			}
 		}
 
-		bitcoindUser := cfg.BitcoindMode.RPCUser
-		bitcoindPass := cfg.BitcoindMode.RPCPass
+		bitcoindUser := bitcoindMode.RPCUser
+		bitcoindPass := bitcoindMode.RPCPass
 		rpcConfig := &rpcclient.ConnConfig{
 			Host:                 bitcoindHost,
 			User:                 bitcoindUser,
@@ -249,7 +256,7 @@ func newChainControlFromConfig(cfg *config, chanDB *channeldb.DB,
 			HTTPPostMode:         true,
 		}
 		cc.chainNotifier, err = bitcoindnotify.New(rpcConfig,
-			cfg.BitcoindMode.ZMQPath, *activeNetParams.Params)
+			bitcoindMode.ZMQPath, *activeNetParams.Params)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -257,7 +264,7 @@ func newChainControlFromConfig(cfg *config, chanDB *channeldb.DB,
 		// Next, we'll create an instance of the bitcoind chain view to
 		// be used within the routing layer.
 		cc.chainView, err = chainview.NewBitcoindFilteredChainView(
-			*rpcConfig, cfg.BitcoindMode.ZMQPath,
+			*rpcConfig, bitcoindMode.ZMQPath,
 			*activeNetParams.Params)
 		if err != nil {
 			srvrLog.Errorf("unable to create chain view: %v", err)
@@ -268,7 +275,7 @@ func newChainControlFromConfig(cfg *config, chanDB *channeldb.DB,
 		// used by the wallet for notifications, calls, etc.
 		bitcoindConn, err = chain.NewBitcoindClient(
 			activeNetParams.Params, bitcoindHost, bitcoindUser,
-			bitcoindPass, cfg.BitcoindMode.ZMQPath,
+			bitcoindPass, bitcoindMode.ZMQPath,
 			time.Millisecond*100)
 		if err != nil {
 			return nil, nil, err
